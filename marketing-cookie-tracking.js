@@ -105,6 +105,41 @@
     return Object.keys(value).length === 0;
   }
 
+  function stripTrackedParamsFromUrl(queryParams) {
+    if (!window.history || typeof window.history.replaceState !== "function") {
+      return;
+    }
+
+    var url = new URL(window.location.href);
+    var didChange = false;
+
+    for (var i = 0; i < queryParams.length; i += 1) {
+      var key = queryParams[i];
+
+      if (url.searchParams.has(key)) {
+        url.searchParams.delete(key);
+        didChange = true;
+      }
+    }
+
+    if (!didChange) {
+      return;
+    }
+
+    var nextUrl = url.pathname;
+    var nextSearch = url.searchParams.toString();
+
+    if (nextSearch) {
+      nextUrl += "?" + nextSearch;
+    }
+
+    if (url.hash) {
+      nextUrl += url.hash;
+    }
+
+    window.history.replaceState(window.history.state, "", nextUrl);
+  }
+
   function processCookieConfig(cookieConfig) {
     var incomingValues = getValuesFromUrl(cookieConfig.queryParams);
 
@@ -124,6 +159,7 @@
     }
 
     writeJsonCookie(cookieConfig, cookieValue);
+    stripTrackedParamsFromUrl(cookieConfig.queryParams);
   }
 
   for (var i = 0; i < CONFIG.cookies.length; i += 1) {
