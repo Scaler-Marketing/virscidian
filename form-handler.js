@@ -827,7 +827,27 @@ class VirscidianFormHandler {
     }
   }
 
+  clearCookie(name) {
+    if (!name) return;
+
+    const expires = "Thu, 01 Jan 1970 00:00:00 GMT";
+    const hostname = window.location.hostname;
+    const domainParts = hostname.split(".");
+    const domains = new Set(["", hostname]);
+
+    if (domainParts.length > 2) {
+      domains.add(`.${domainParts.slice(-2).join(".")}`);
+    }
+
+    domains.forEach((domain) => {
+      const domainPart = domain ? `; domain=${domain}` : "";
+      document.cookie = `${name}=; expires=${expires}; path=/${domainPart}`;
+    });
+  }
+
   handleSuccess(config) {
+    this.clearCookie("marketing_tracking");
+
     if (config.redirectUrl) {
       // Keep form visible but interactive elements disabled ideally,
       // but simpler to just show success and redirect.
